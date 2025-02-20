@@ -1,0 +1,23 @@
+galaxy_info:
+  role_name: nvidia_container_toolkit
+  author: Yeongpil Yoon
+  company: restack.tech
+  description: Install NVIDIA Container Toolkit for GPU-accelerated containers
+  license: 3-Clause BSD
+  min_ansible_version: "2.14"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - "jammy" # Ubuntu 22.04
+        - "noble" # Ubuntu 24.04
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+
+  galaxy_tags:
+    - "nvidia"
+    - "docker"
+    - "container"
+    - "gpu"

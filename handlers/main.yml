@@ -1,0 +1,14 @@
+---
+- name: restart docker
+  block:
+    - systemd:
+        name: docker
+        state: restarted
+      become: true
+
+- name: restart containerd
+  bock:
+    - systemd:
+        name: containerd
+        state: restarted
+      become: true

@@ -1,0 +1,37 @@
+---
+- name: remove legacy nvidia-docker packages
+  apt:
+    name:
+      - nvidia-docker
+      - nvidia-docker2
+    state: absent
+    autoremove: yes
+    purge: yes
+
+- name: add NVIDIA container toolkit GPG key
+  apt_key:
+    url: "{{ nvidia_container_toolkit_repo_gpg_url }}"
+    state: present
+  when: nvidia_container_toolkit_add_repo
+  environment: "{{ proxy_env if proxy_env is defined else {} }}"
+
+- name: determine Ubuntu codename
+  set_fact:
+    ubuntu_codename: "{{ ansible_distribution_release }}"
+
+- name: add NVIDIA container toolkit repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] {{ nvidia_container_toolkit_repo_base_url }}/stable/ubuntu{{ ubuntu_codename }}/$(ARCH) /"
+    state: present
+    filename: "nvidia-container-toolkit"
+    update_cache: yes
+  when: nvidia_container_toolkit_add_repo
+  environment: "{{ proxy_env if proxy_env is defined else {} }}"
+
+- name: install nvidia-container-toolkit
+  apt:
+    name: "nvidia-container-toolkit{{ (nvidia_container_toolkit_package_version | length > 0) | ternary('=' + nvidia_container_toolkit_package_version, '') }}"
+    state: present
+    update_cache: yes
+  notify: restart docker
+  environment: "{{ proxy_env if proxy_env is defined else {} }}"

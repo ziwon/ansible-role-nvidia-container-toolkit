@@ -1,0 +1,48 @@
+---
+- name: check distro
+  fail:
+    msg: "distro {{ ansible_facts['distribution'] }} not supported"
+  when: ansible_facts['distribution'] != 'Ubuntu' and ansible_os_family != 'RedHat'
+
+- name: ubuntu pre-install tasks
+  include_tasks: ubuntu-pre-install.yml
+  when: ansible_distribution == 'Ubuntu'
+
+- name: create /etc/docker
+  file:
+    path: /etc/docker
+    state: directory
+    mode: "0755"
+
+- name: set docker daemon configuration
+  copy:
+    content: "{{ docker_daemon_json | to_nice_json }}"
+    dest: "/etc/docker/daemon.json"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart docker
+  when: install_docker | default(true)
+
+- name: install containerd (Ubuntu)
+  apt:
+    name: "{{ containerd_package }}"
+    state: present
+    update_cache: yes
+  when: ansible_distribution == 'Ubuntu' and install_containerd | default(false)
+
+- name: generate default containerd configuration
+  shell: containerd config default > {{ containerd_config_file }}
+  args:
+    creates: "{{ containerd_config_file }}"
+  become: true
+  when: ansible_distribution == 'Ubuntu' and install_containerd | default(false)
+
+- name: configure containerd to use NVIDIA container runtime
+  lineinfile:
+    path: "{{ containerd_config_file }}"
+    regexp: '(^\s*runtime\W+)=\s*"io.containerd.runc.v2"'
+    line: '            runtime = "nvidia-container-runtime"'
+  notify: restart containerd
+  become: true
+  when: ansible_distribution == 'Ubuntu' and install_containerd | default(false)

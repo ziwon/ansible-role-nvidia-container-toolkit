@@ -1,0 +1,32 @@
+nvidia_container_toolkit_package_version: ""
+nvidia_driver_version: "550"
+
+docker_package: "docker.io"
+install_docker: false # Since Kubernetes 1.20, containerd is the default runtime
+
+containerd_package: "containerd.io"
+containerd_config_file: "/etc/containerd/config.toml"
+containerd_version: ""
+install_containerd: true # Since Kubernetes 1.20, containerd is the default runtime
+
+docker_daemon_json:
+  runtimes:
+    nvidia:
+      path: /usr/bin/nvidia-container-runtime
+      runtimeArgs: []
+  default-runtime: nvidia
+  default-shm-size: 1G
+  default-ulimits:
+    memlock:
+      name: memlock
+      hard: -1
+      soft: -1
+    stack:
+      name: stack
+      hard: 67108864
+      soft: 67108864
+
+nvidia_container_toolkit_base_url: "https://nvidia.github.io/libnvidia-container"
+nvidia_container_toolkit_repo_gpg_url: "{{ nvidia_container_toolkit_base_url }}/gpgkey"
+nvidia_container_toolkit_add_repo: true
+nvidia_container_toolkit_skip_docker_restart: false
